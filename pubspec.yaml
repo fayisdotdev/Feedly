@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^2.1.5
   flutter_launcher_icons: ^0.14.4
   chewie: ^1.13.0
+  dio: ^5.9.0
 
 dev_dependencies:
   flutter_test:

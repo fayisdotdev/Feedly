@@ -15,8 +15,8 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-        HomeScreen(),
-    AddPostPage(),
+    HomeScreen(),
+    AddFeedScreen(),
     MyFeedsPage(),
     ProfilePage(),
   ];

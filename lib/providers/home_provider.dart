@@ -24,6 +24,7 @@ class HomeProvider with ChangeNotifier {
   final String fileName = 'home_data.json';
 
   /// Fetch categories from API
+  /// Fetch categories from API and print all data
   Future<void> fetchCategories() async {
     final url = '$baseUrl/category_list';
     debugPrint('📡 [HomeProvider] Fetching categories from: $url');
@@ -34,6 +35,12 @@ class HomeProvider with ChangeNotifier {
         final jsonBody = jsonDecode(res.body);
         categories = CategoryModel.listFromJson(jsonBody['categories'] ?? []);
         debugPrint('✅ [HomeProvider] Parsed ${categories.length} categories');
+
+        // Print every category data
+        for (var cat in categories) {
+          debugPrint('📂 Category: ${jsonEncode(cat.toJson())}');
+        }
+
         notifyListeners();
       }
     } catch (e) {
@@ -41,7 +48,7 @@ class HomeProvider with ChangeNotifier {
     }
   }
 
-  /// Fetch feeds from API
+  /// Fetch feeds from API and print all data
   Future<void> fetchFeeds() async {
     final url = '$baseUrl/home';
     debugPrint('📡 [HomeProvider] Fetching feeds from: $url');
@@ -55,6 +62,11 @@ class HomeProvider with ChangeNotifier {
         final jsonBody = jsonDecode(res.body);
         feeds = FeedModel.listFromJson(jsonBody['results'] ?? []);
         debugPrint('✅ [HomeProvider] Parsed ${feeds.length} feeds');
+
+        // Print every feed data
+        for (var feed in feeds) {
+          debugPrint('📰 Feed: ${jsonEncode(feed.toJson())}');
+        }
       }
     } catch (e) {
       debugPrint('❌ [HomeProvider] Error fetching feeds: $e');
@@ -69,6 +81,30 @@ class HomeProvider with ChangeNotifier {
     await fetchCategories();
     await fetchFeeds();
     await saveDataToFile();
+  }
+
+  /// Call after fetching both categories and feeds
+  void sortCategoriesByFeedCount() {
+    final Map<String, int> feedCountMap = {};
+
+    for (var cat in categories) {
+      feedCountMap[cat.id] = feeds
+          .where(
+            (feed) =>
+                feed.description.toLowerCase().contains(cat.name.toLowerCase()),
+          )
+          .length;
+    }
+
+    categories.sort(
+      (a, b) => (feedCountMap[b.id] ?? 0).compareTo(feedCountMap[a.id] ?? 0),
+    );
+
+    debugPrint('📂 Categories sorted by feed count:');
+    for (var cat in categories) {
+      debugPrint('${cat.name} -> ${feedCountMap[cat.id] ?? 0} feeds');
+    }
+    notifyListeners();
   }
 
   /// Get file path in device storage
@@ -89,25 +125,6 @@ class HomeProvider with ChangeNotifier {
       debugPrint('✅ Data saved at ${file.path}');
     } catch (e) {
       debugPrint('❌ Error saving data: $e');
-    }
-  }
-
-  /// Load data from local file
-  Future<void> loadDataFromFile() async {
-    try {
-      final file = await _localFile;
-      if (!await file.exists()) return;
-
-      final jsonString = await file.readAsString();
-      final jsonBody = jsonDecode(jsonString);
-
-      categories = CategoryModel.listFromJson(jsonBody['categories'] ?? []);
-      feeds = FeedModel.listFromJson(jsonBody['feeds'] ?? []);
-
-      debugPrint('✅ Loaded ${categories.length} categories and ${feeds.length} feeds from file');
-      notifyListeners();
-    } catch (e) {
-      debugPrint('❌ Error loading data from file: $e');
     }
   }
 

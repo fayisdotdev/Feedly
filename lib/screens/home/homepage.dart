@@ -1,7 +1,7 @@
-import 'package:feedly/providers/home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chewie/chewie.dart';
+import 'package:feedly/providers/home_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +11,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? selectedCategoryId;
+
   @override
   void initState() {
     super.initState();
@@ -22,52 +24,107 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<HomeProvider>(
       builder: (context, provider, _) {
+        // Filter feeds by selected category (simple demo: check if category name is in description)
+        List filteredFeeds = provider.feeds;
+        if (selectedCategoryId != null) {
+          final selectedCategory = provider.categories.firstWhere(
+            (cat) => cat.id == selectedCategoryId,
+            orElse: () => provider.categories.first,
+          );
+          filteredFeeds = provider.feeds
+              .where(
+                (feed) => feed.description.toLowerCase().contains(
+                  selectedCategory.name.toLowerCase(),
+                ),
+              )
+              .toList();
+        }
+
         return Scaffold(
           backgroundColor: Colors.grey[50],
-          appBar: AppBar(
-            title: const Text('Home'),
-            centerTitle: true,
-          ),
+          appBar: AppBar(title: const Text('Home'), centerTitle: true),
           body: provider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
-                  onRefresh: () async => await provider.fetchHomeData(),
+                  onRefresh: () async {
+                    await provider.fetchHomeData();
+                    provider.sortCategoriesByFeedCount();
+                  },
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Categories
+                        // Category List
                         if (provider.categories.isNotEmpty)
                           SizedBox(
-                            height: 80,
+                            height: 60,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              itemCount: provider.categories.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              itemCount: provider.categories.length + 1,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 10),
                               itemBuilder: (context, index) {
-                                final cat = provider.categories[index];
-                                return Chip(
-                                  label: Text(cat.name),
-                                  backgroundColor: Colors.white,
-                                  side: const BorderSide(color: Colors.black12),
+                                if (index == 0) {
+                                  // "All" category
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedCategoryId = null;
+                                      });
+                                    },
+                                    child: Chip(
+                                      label: const Text('All'),
+                                      backgroundColor:
+                                          selectedCategoryId == null
+                                          ? Colors.blue[200]
+                                          : Colors.white,
+                                      side: const BorderSide(
+                                        color: Colors.black12,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                final cat = provider.categories[index - 1];
+                                final isSelected = selectedCategoryId == cat.id;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedCategoryId = cat.id;
+                                    });
+                                  },
+                                  child: Chip(
+                                    label: Text(cat.name),
+                                    backgroundColor: isSelected
+                                        ? Colors.blue[200]
+                                        : Colors.white,
+                                    side: const BorderSide(
+                                      color: Colors.black12,
+                                    ),
+                                  ),
                                 );
                               },
                             ),
                           ),
                         const SizedBox(height: 10),
 
-                        // Feeds
+                        // Feed List
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: provider.feeds.length,
+                          itemCount: filteredFeeds.length,
                           itemBuilder: (context, index) {
-                            final feed = provider.feeds[index];
-                            final isPlaying = provider.currentPlayingIndex == index;
+                            final feed = filteredFeeds[index];
+                            final isPlaying =
+                                provider.currentPlayingIndex == index;
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
                               child: Card(
                                 elevation: 2,
                                 shape: RoundedRectangleBorder(
@@ -81,23 +138,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         if (!isPlaying)
                                           ClipRRect(
-                                            borderRadius: const BorderRadius.vertical(
-                                                top: Radius.circular(12)),
-                                            child: feed.thumbnailUrl.isNotEmpty
-                                                ? Image.network(
-                                                    feed.thumbnailUrl,
-                                                    height: 220,
-                                                    width: double.infinity,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Image.asset(
-                                                    'assets/images/feed_placeholder.png',
-                                                    height: 220,
-                                                    width: double.infinity,
-                                                    fit: BoxFit.cover,
-                                                  ),
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                                  top: Radius.circular(12),
+                                                ),
+                                            child: Image.network(
+                                              feed.thumbnailUrl,
+                                              height: 220,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                        if (isPlaying && provider.chewieController != null)
+                                        if (isPlaying &&
+                                            provider.chewieController != null)
                                           AspectRatio(
                                             aspectRatio: provider
                                                 .chewieController!
@@ -105,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 .value
                                                 .aspectRatio,
                                             child: Chewie(
-                                              controller: provider.chewieController!,
+                                              controller:
+                                                  provider.chewieController!,
                                             ),
                                           ),
                                         if (!isPlaying)
@@ -115,17 +169,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                               size: 64,
                                               color: Colors.white,
                                             ),
-                                            onPressed: () => provider.playVideo(index),
+                                            onPressed: () =>
+                                                provider.playVideo(index),
                                           ),
                                       ],
                                     ),
                                     ListTile(
                                       leading: CircleAvatar(
-                                        backgroundImage: feed.userAvatar.isNotEmpty
+                                        backgroundImage:
+                                            feed.userAvatar.startsWith('http')
                                             ? NetworkImage(feed.userAvatar)
                                             : const AssetImage(
-                                                    'assets/images/avatar_placeholder.png')
-                                                as ImageProvider,
+                                                    'assets/images/avatar_placeholder.png',
+                                                  )
+                                                  as ImageProvider,
                                       ),
                                       title: Text(feed.userName),
                                       subtitle: Text(feed.description),
