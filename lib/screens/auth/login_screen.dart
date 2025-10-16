@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:feedly/core/providers/auth/auth_provider.dart';
+import 'package:feedly/core/providers/auth_provider.dart';
 import 'package:feedly/screens/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProviderCompact>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
@@ -36,10 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Enter your phone number',
-                style: TextStyle(fontSize: 20),
-              ),
+              Text('Enter your phone number', style: TextStyle(fontSize: 20)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
@@ -74,13 +70,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const MainNavigation()),
+                                  builder: (_) => const MainNavigation(),
+                                ),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content:
-                                        Text('Login failed. Try again.')),
+                                  content: Text('Login failed. Try again.'),
+                                ),
                               );
                             }
                           }

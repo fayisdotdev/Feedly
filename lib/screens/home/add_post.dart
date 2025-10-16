@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
-import 'package:feedly/core/providers/feed/upload_feed_provider.dart';
-import 'package:feedly/core/providers/auth/auth_provider.dart';
+import 'package:feedly/core/providers/feed_provider.dart';
+import 'package:feedly/core/providers/auth_provider.dart';
 
 class AddFeedScreen extends StatefulWidget {
   const AddFeedScreen({super.key});
@@ -18,15 +18,15 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<AddFeedProvider>();
-      provider.token = context.read<AuthProvider>().accessToken;
+      final provider = context.read<FeedProvider>();
+      provider.token = context.read<AuthProviderCompact>().accessToken;
       provider.fetchCategories();
     });
   }
 
   Future<void> _showCategorySelector(BuildContext context) async {
-    final provider = context.read<AddFeedProvider>();
-    final selectedIds = List<String>.from(provider.feed.categoryIds);
+    final provider = context.read<FeedProvider>();
+    final selectedIds = List<String>.from(provider.upload.categoryIds);
 
     await showDialog(
       context: context,
@@ -78,7 +78,7 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<AddFeedProvider>();
+    final provider = context.watch<FeedProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Feed')),
@@ -93,20 +93,21 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
                 try {
                   await provider.pickVideo();
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString())),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(e.toString())));
                 }
               },
               child: Container(
                 height: 200,
                 color: Colors.grey[300],
-                child: provider.videoController != null &&
-                        provider.videoController!.value.isInitialized
+                child:
+                    provider.uploadVideoController != null &&
+                        provider.uploadVideoController!.value.isInitialized
                     ? AspectRatio(
                         aspectRatio:
-                            provider.videoController!.value.aspectRatio,
-                        child: VideoPlayer(provider.videoController!),
+                            provider.uploadVideoController!.value.aspectRatio,
+                        child: VideoPlayer(provider.uploadVideoController!),
                       )
                     : const Center(child: Text('Tap to select video')),
               ),
@@ -119,9 +120,9 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
               child: Container(
                 height: 150,
                 color: Colors.grey[200],
-                child: provider.feed.imagePath != null
+                child: provider.upload.imagePath != null
                     ? Image.file(
-                        File(provider.feed.imagePath!),
+                        File(provider.upload.imagePath!),
                         fit: BoxFit.cover,
                         width: double.infinity,
                       )
@@ -149,15 +150,18 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
                       if (provider.categories.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Categories not loaded yet')),
+                            content: Text('Categories not loaded yet'),
+                          ),
                         );
                         return;
                       }
                       await _showCategorySelector(context);
                     },
-                    child: Text(provider.feed.categoryIds.isEmpty
-                        ? 'Select Categories'
-                        : 'Selected (${provider.feed.categoryIds.length})'),
+                    child: Text(
+                      provider.upload.categoryIds.isEmpty
+                          ? 'Select Categories'
+                          : 'Selected (${provider.upload.categoryIds.length})',
+                    ),
                   ),
             const SizedBox(height: 16),
 
@@ -179,12 +183,13 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
                         await provider.uploadFeed();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Feed uploaded successfully!')),
+                            content: Text('Feed uploaded successfully!'),
+                          ),
                         );
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
                       }
                     },
                     child: const Text('Upload Feed'),

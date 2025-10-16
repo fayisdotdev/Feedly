@@ -1,10 +1,9 @@
-import 'package:feedly/core/providers/auth/auth_provider.dart';
-import 'package:feedly/core/providers/feed/user_feed_provider.dart';
+import 'package:feedly/core/providers/auth_provider.dart';
+import 'package:feedly/core/providers/feed_provider.dart';
 import 'package:feedly/models/feeds/user_feeds_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
 
 class MyFeedScreen extends StatefulWidget {
   const MyFeedScreen({super.key});
@@ -21,11 +20,15 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final feedProvider = Provider.of<UserFeedProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProviderCompact>(
+        context,
+        listen: false,
+      );
+      final feedProvider = Provider.of<FeedProvider>(context, listen: false);
 
-      if (authProvider.accessToken != null && authProvider.accessToken!.isNotEmpty) {
-        feedProvider.token = authProvider.accessToken!;
+      if (authProvider.accessToken != null &&
+          authProvider.accessToken!.isNotEmpty) {
+        feedProvider.token = authProvider.accessToken;
         feedProvider.fetchUserFeeds();
       } else {
         debugPrint('No access token available. Redirect to login.');
@@ -67,13 +70,13 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('My Feeds')),
-      body: Consumer<UserFeedProvider>(
+      body: Consumer<FeedProvider>(
         builder: (context, provider, _) {
-          if (provider.feeds.isEmpty && provider.isLoading) {
+          if (provider.userFeeds.isEmpty && provider.isLoadingUserFeeds) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (provider.feeds.isEmpty) {
+          if (provider.userFeeds.isEmpty) {
             return const Center(child: Text('No feeds yet.'));
           }
 
@@ -81,19 +84,24 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
             onRefresh: () => provider.fetchUserFeeds(refresh: true),
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: provider.feeds.length + (provider.hasMore ? 1 : 0),
+              itemCount:
+                  provider.userFeeds.length +
+                  (provider.userFeedsHasMore ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == provider.feeds.length) {
+                if (index == provider.userFeeds.length) {
                   return const Padding(
                     padding: EdgeInsets.all(16),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                final UserFeedModel feed = provider.feeds[index];
+                final UserFeedModel feed = provider.userFeeds[index];
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -103,12 +111,18 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
                           alignment: Alignment.center,
                           children: [
                             feed.image != null
-                                ? Image.network(feed.image!,
-                                    width: double.infinity, fit: BoxFit.cover)
+                                ? Image.network(
+                                    feed.image!,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
                                 : const SizedBox.shrink(),
                             if (feed.video != null)
-                              const Icon(Icons.play_circle_outline,
-                                  size: 64, color: Colors.white70),
+                              const Icon(
+                                Icons.play_circle_outline,
+                                size: 64,
+                                color: Colors.white70,
+                              ),
                           ],
                         ),
                       Padding(
@@ -117,14 +131,18 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Description
-                            Text(feed.description,
-                                style: const TextStyle(fontSize: 16)),
+                            Text(
+                              feed.description,
+                              style: const TextStyle(fontSize: 16),
+                            ),
                             const SizedBox(height: 4),
                             // Timestamp
                             Text(
                               formatTimestamp(feed.createdAt),
                               style: const TextStyle(
-                                  color: Colors.grey, fontSize: 12),
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),

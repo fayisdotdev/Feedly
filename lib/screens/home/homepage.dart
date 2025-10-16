@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chewie/chewie.dart';
-import 'package:feedly/providers/home_provider.dart';
+import 'package:feedly/core/providers/feed_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,13 +16,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final homeProvider = Provider.of<HomeProvider>(context, listen: false);
+    final homeProvider = Provider.of<FeedProvider>(context, listen: false);
     homeProvider.fetchHomeData();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<HomeProvider>(
+    return Consumer<FeedProvider>(
       builder: (context, provider, _) {
         // Filter feeds by selected category (simple demo: check if category name is in description)
         List filteredFeeds = provider.feeds;
