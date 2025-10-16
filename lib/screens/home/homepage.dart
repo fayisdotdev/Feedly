@@ -1,7 +1,6 @@
 import 'package:feedly/providers/home_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'package:chewie/chewie.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,8 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     final homeProvider = Provider.of<HomeProvider>(context, listen: false);
-    homeProvider.fetchCategories();
-    homeProvider.fetchFeeds();
+    homeProvider.fetchHomeData();
   }
 
   @override
@@ -33,25 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
           body: provider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
-                  onRefresh: () async {
-                    await provider.fetchFeeds();
-                  },
+                  onRefresh: () async => await provider.fetchHomeData(),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Category List
+                        // Categories
                         if (provider.categories.isNotEmpty)
                           SizedBox(
-                            height: 60,
+                            height: 80,
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
                               itemCount: provider.categories.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 10),
+                              separatorBuilder: (_, __) => const SizedBox(width: 10),
                               itemBuilder: (context, index) {
                                 final cat = provider.categories[index];
                                 return Chip(
@@ -64,18 +58,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         const SizedBox(height: 10),
 
-                        // Feed List
+                        // Feeds
                         ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: provider.feeds.length,
                           itemBuilder: (context, index) {
                             final feed = provider.feeds[index];
-                            final isPlaying =
-                                provider.currentPlayingIndex == index;
+                            final isPlaying = provider.currentPlayingIndex == index;
                             return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                               child: Card(
                                 elevation: 2,
                                 shape: RoundedRectangleBorder(
@@ -89,27 +81,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         if (!isPlaying)
                                           ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.vertical(
-                                                    top: Radius.circular(12)),
-                                            child: Image.network(
-                                              feed.thumbnailUrl,
-                                              height: 220,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                            ),
+                                            borderRadius: const BorderRadius.vertical(
+                                                top: Radius.circular(12)),
+                                            child: feed.thumbnailUrl.isNotEmpty
+                                                ? Image.network(
+                                                    feed.thumbnailUrl,
+                                                    height: 220,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Image.asset(
+                                                    'assets/images/feed_placeholder.png',
+                                                    height: 220,
+                                                    width: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                           ),
-                                        if (isPlaying &&
-                                            provider.chewieController != null)
+                                        if (isPlaying && provider.chewieController != null)
                                           AspectRatio(
                                             aspectRatio: provider
-                                                    .chewieController!
-                                                    .videoPlayerController
-                                                    .value
-                                                    .aspectRatio,
+                                                .chewieController!
+                                                .videoPlayerController
+                                                .value
+                                                .aspectRatio,
                                             child: Chewie(
-                                              controller:
-                                                  provider.chewieController!,
+                                              controller: provider.chewieController!,
                                             ),
                                           ),
                                         if (!isPlaying)
@@ -119,15 +115,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                               size: 64,
                                               color: Colors.white,
                                             ),
-                                            onPressed: () =>
-                                                provider.playVideo(index),
+                                            onPressed: () => provider.playVideo(index),
                                           ),
                                       ],
                                     ),
                                     ListTile(
                                       leading: CircleAvatar(
-                                        backgroundImage:
-                                            NetworkImage(feed.userAvatar),
+                                        backgroundImage: feed.userAvatar.isNotEmpty
+                                            ? NetworkImage(feed.userAvatar)
+                                            : const AssetImage(
+                                                    'assets/images/avatar_placeholder.png')
+                                                as ImageProvider,
                                       ),
                                       title: Text(feed.userName),
                                       subtitle: Text(feed.description),
