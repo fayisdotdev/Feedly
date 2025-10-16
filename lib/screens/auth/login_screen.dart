@@ -2,6 +2,7 @@
 
 import 'package:feedly/core/providers/auth/auth_provider.dart';
 import 'package:feedly/screens/home/homepage.dart';
+import 'package:feedly/screens/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -74,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const Homepage()),
+                                    builder: (_) => const MainNavigation()),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(

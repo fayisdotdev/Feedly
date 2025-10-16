@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:feedly/models/auth/login_response_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -31,13 +30,13 @@ class AuthProvider extends ChangeNotifier {
 
       debugPrint('OTP Response: $data');
 
-      if (response.statusCode == 200 && data['access'] != null) {
-        final loginResponse = LoginResponse.fromJson(data);
-        _accessToken = loginResponse.access;
+      if (data['status'] == true && data['token']?['access'] != null) {
+        _accessToken = data['token']['access'];
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
+        debugPrint('Login failed. Response: $data');
         _isLoading = false;
         notifyListeners();
         return false;
