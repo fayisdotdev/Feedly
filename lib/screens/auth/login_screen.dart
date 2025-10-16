@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:feedly/core/providers/auth/auth_provider.dart';
-import 'package:feedly/screens/home/homepage.dart';
 import 'package:feedly/screens/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
