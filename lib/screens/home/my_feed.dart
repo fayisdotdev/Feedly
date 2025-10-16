@@ -1,9 +1,11 @@
 import 'package:feedly/core/providers/auth_provider.dart';
 import 'package:feedly/core/providers/feed_provider.dart';
-import 'package:feedly/models/feeds/user_feeds_model.dart';
+import 'package:feedly/models/feeds/feeds_models.dart' as unified;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:feedly/widgets/feed_card.dart';
+import 'package:feedly/widgets/video_player_widget.dart';
 
 class MyFeedScreen extends StatefulWidget {
   const MyFeedScreen({super.key});
@@ -95,57 +97,48 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
                   );
                 }
 
-                final UserFeedModel feed = provider.userFeeds[index];
+                final unified.UserFeedModelUnified feed =
+                    provider.userFeeds[index];
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(
+                // Reuse FeedCard for a consistent look. If it's a user-owned post with video, show a small preview above the card.
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 8,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Image / Video preview
-                      if (feed.image != null || feed.video != null)
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            feed.image != null
-                                ? Image.network(
-                                    feed.image!,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  )
-                                : const SizedBox.shrink(),
-                            if (feed.video != null)
-                              const Icon(
-                                Icons.play_circle_outline,
-                                size: 64,
-                                color: Colors.white70,
-                              ),
-                          ],
+                      if (feed.video != null)
+                        SizedBox(
+                          height: 220,
+                          child: VideoPlayerWidget(
+                            src: feed.video!,
+                            isLocal: false,
+                            autoPlay: false,
+                          ),
+                        )
+                      else if (feed.image != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            feed.image!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Description
-                            Text(
-                              feed.description,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 4),
-                            // Timestamp
-                            Text(
-                              formatTimestamp(feed.createdAt),
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 8),
+                      FeedCard(
+                        feed: unified.FeedModelUnified(
+                          id: feed.id.toString(),
+                          thumbnailUrl: feed.image ?? '',
+                          videoUrl: feed.video ?? '',
+                          description: feed.description,
+                          userName: 'You',
+                          userAvatar: 'assets/images/avatar_placeholder.png',
                         ),
+                        onPlay: null,
+                        height: 140,
                       ),
                     ],
                   ),

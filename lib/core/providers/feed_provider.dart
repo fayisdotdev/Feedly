@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:feedly/models/feeds/feeds_models.dart' as unified;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
@@ -8,9 +9,6 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:feedly/models/feeds/feed_model.dart' as home_models;
-import 'package:feedly/models/feeds/feed_upload_model.dart' as upload_models;
-import 'package:feedly/models/feeds/user_feeds_model.dart';
 
 /// A combined provider that groups feed related responsibilities:
 /// - fetching home feeds & categories
@@ -21,14 +19,14 @@ class FeedProvider with ChangeNotifier {
   final String baseUrl = 'https://frijo.noviindus.in/api';
 
   // Home data
-  List<home_models.CategoryModel> categories = [];
-  List<home_models.FeedModel> feeds = [];
+  List<unified.CategoryModelUnified> categories = [];
+  List<unified.FeedModelUnified> feeds = [];
   bool isLoadingHome = false;
   bool isLoadingCategories = false;
 
   // Upload
   final Dio _dio = Dio();
-  upload_models.FeedUploadModel upload = upload_models.FeedUploadModel(
+  unified.FeedUploadModelUnified upload = unified.FeedUploadModelUnified(
     desc: '',
     categoryIds: [],
   );
@@ -37,7 +35,7 @@ class FeedProvider with ChangeNotifier {
   VideoPlayerController? uploadVideoController;
 
   // User feeds (paginated)
-  List<UserFeedModel> userFeeds = [];
+  List<unified.UserFeedModelUnified> userFeeds = [];
   int userFeedsPage = 1;
   bool isLoadingUserFeeds = false;
   bool userFeedsHasMore = true;
@@ -66,7 +64,8 @@ class FeedProvider with ChangeNotifier {
       final res = await http.get(Uri.parse(url));
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final jsonBody = jsonDecode(res.body);
-        categories = home_models.CategoryModel.listFromJson(
+        // parse using unified models and store unified types
+        categories = unified.CategoryModelUnified.listFromJson(
           jsonBody['categories'] ?? [],
         );
         isLoadingCategories = false;
@@ -90,7 +89,10 @@ class FeedProvider with ChangeNotifier {
       final res = await http.get(Uri.parse(url));
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final jsonBody = jsonDecode(res.body);
-        feeds = home_models.FeedModel.listFromJson(jsonBody['results'] ?? []);
+        // parse using unified feed model and store unified types
+        feeds = unified.FeedModelUnified.listFromJson(
+          jsonBody['results'] ?? [],
+        );
       }
     } catch (e) {
       debugPrint('❌ [FeedProvider] Error fetching feeds: $e');
@@ -246,7 +248,7 @@ class FeedProvider with ChangeNotifier {
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 202) {
-        upload = upload_models.FeedUploadModel(desc: '', categoryIds: []);
+        upload = unified.FeedUploadModelUnified(desc: '', categoryIds: []);
         uploadVideoController?.dispose();
         uploadVideoController = null;
         uploadProgress = 0;
@@ -321,9 +323,11 @@ class FeedProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final List<UserFeedModel> fetched = UserFeedModel.listFromJson(
+        final unifiedList = unified.UserFeedModelUnified.listFromJson(
           data['results'] ?? [],
         );
+
+        final List<unified.UserFeedModelUnified> fetched = unifiedList;
 
         if (fetched.isEmpty) {
           userFeedsHasMore = false;

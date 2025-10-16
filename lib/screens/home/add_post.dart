@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 import 'package:feedly/core/providers/feed_provider.dart';
 import 'package:feedly/core/providers/auth_provider.dart';
+import 'package:feedly/widgets/upload_preview.dart';
 
 class AddFeedScreen extends StatefulWidget {
   const AddFeedScreen({super.key});
@@ -87,7 +86,7 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            /// --- Video Picker ---
+            /// --- Video / Image Preview ---
             GestureDetector(
               onTap: () async {
                 try {
@@ -98,36 +97,44 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
                   ).showSnackBar(SnackBar(content: Text(e.toString())));
                 }
               },
-              child: Container(
+              child: SizedBox(
                 height: 200,
-                color: Colors.grey[300],
-                child:
-                    provider.uploadVideoController != null &&
-                        provider.uploadVideoController!.value.isInitialized
-                    ? AspectRatio(
-                        aspectRatio:
-                            provider.uploadVideoController!.value.aspectRatio,
-                        child: VideoPlayer(provider.uploadVideoController!),
-                      )
-                    : const Center(child: Text('Tap to select video')),
+                child: UploadPreview(
+                  imagePath: provider.upload.imagePath,
+                  videoPath: provider.upload.videoPath,
+                  videoController: provider.uploadVideoController,
+                ),
               ),
             ),
             const SizedBox(height: 16),
 
-            /// --- Image Picker ---
-            GestureDetector(
-              onTap: () async => await provider.pickImage(),
-              child: Container(
-                height: 150,
-                color: Colors.grey[200],
-                child: provider.upload.imagePath != null
-                    ? Image.file(
-                        File(provider.upload.imagePath!),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      )
-                    : const Center(child: Text('Tap to select thumbnail')),
-              ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async => await provider.pickImage(),
+                    icon: const Icon(Icons.photo),
+                    label: const Text('Select Thumbnail'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await provider.pickVideo();
+                      } catch (e) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      }
+                    },
+                    icon: const Icon(Icons.video_library),
+                    label: const Text('Select Video'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 

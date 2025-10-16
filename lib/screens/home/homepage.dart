@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chewie/chewie.dart';
 import 'package:feedly/core/providers/feed_provider.dart';
+import 'package:feedly/widgets/feed_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,8 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       label: const Text('All'),
                                       backgroundColor:
                                           selectedCategoryId == null
-                                          ? Colors.blue[200]
-                                          : Colors.white,
+                                              ? Colors.blue[200]
+                                              : Colors.white,
                                       side: const BorderSide(
                                         color: Colors.black12,
                                       ),
@@ -118,78 +119,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemCount: filteredFeeds.length,
                           itemBuilder: (context, index) {
                             final feed = filteredFeeds[index];
-                            final isPlaying =
-                                provider.currentPlayingIndex == index;
+                            final isPlaying = provider.currentPlayingIndex == index;
+
                             return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              child: Card(
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        if (!isPlaying)
-                                          ClipRRect(
-                                            borderRadius:
-                                                const BorderRadius.vertical(
-                                                  top: Radius.circular(12),
-                                                ),
-                                            child: Image.network(
-                                              feed.thumbnailUrl,
-                                              height: 220,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        if (isPlaying &&
-                                            provider.chewieController != null)
-                                          AspectRatio(
-                                            aspectRatio: provider
-                                                .chewieController!
-                                                .videoPlayerController
-                                                .value
-                                                .aspectRatio,
-                                            child: Chewie(
-                                              controller:
-                                                  provider.chewieController!,
-                                            ),
-                                          ),
-                                        if (!isPlaying)
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.play_circle_fill,
-                                              size: 64,
-                                              color: Colors.white,
-                                            ),
-                                            onPressed: () =>
-                                                provider.playVideo(index),
-                                          ),
-                                      ],
-                                    ),
-                                    ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundImage:
-                                            feed.userAvatar.startsWith('http')
-                                            ? NetworkImage(feed.userAvatar)
-                                            : const AssetImage(
-                                                    'assets/images/avatar_placeholder.png',
-                                                  )
-                                                  as ImageProvider,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              child: isPlaying && provider.chewieController != null
+                                  ? Card(
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      title: Text(feed.userName),
-                                      subtitle: Text(feed.description),
+                                      child: AspectRatio(
+                                        aspectRatio: provider.chewieController!.videoPlayerController.value.aspectRatio,
+                                        child: Chewie(controller: provider.chewieController!),
+                                      ),
+                                    )
+                                  : FeedCard(
+                                      feed: feed,
+                                      onPlay: () => provider.playVideo(index),
                                     ),
-                                  ],
-                                ),
-                              ),
                             );
                           },
                         ),
