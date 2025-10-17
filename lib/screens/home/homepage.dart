@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     final homeProvider = Provider.of<FeedProvider>(context, listen: false);
     homeProvider.fetchHomeData().then((_) {
-      homeProvider.sortCategoriesByFeedCount(); // ✅ ensure sorting after fetch
+      homeProvider.sortCategoriesByFeedCount(); 
     });
   }
 

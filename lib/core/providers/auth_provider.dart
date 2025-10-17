@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-/// A compact Auth provider you can opt to use instead of the older nested one.
-/// Exposes token, login/logout and an isLoading flag. Keeps the same shape
-/// as the original `auth_provider` so it's easy to swap in.
+
 class AuthProviderCompact extends ChangeNotifier {
   String? _accessToken;
   bool _isLoading = false;
@@ -12,7 +10,7 @@ class AuthProviderCompact extends ChangeNotifier {
   String? get accessToken => _accessToken;
   bool get isLoading => _isLoading;
 
-  /// Login using OTP endpoint. Returns true on successful login.
+  /// Login using OTP endpoint.
   Future<bool> loginWithOtp({
     required String countryCode,
     required String phone,
@@ -60,7 +58,6 @@ class AuthProviderCompact extends ChangeNotifier {
 
   bool get isLoggedIn => _accessToken != null;
 
-  /// Helper to set token manually (useful for tests or restoring from storage)
   void setToken(String? token) {
     _accessToken = token;
     notifyListeners();

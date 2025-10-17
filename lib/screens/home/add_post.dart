@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:feedly/widgets/styles/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:feedly/core/providers/feed_provider.dart';
@@ -81,9 +82,7 @@ class _AddFeedScreenState extends State<AddFeedScreen> {
     final provider = context.watch<FeedProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Feed'),
-      ),
+      appBar: feedlyAppBar(title: "Add New Feed"),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(

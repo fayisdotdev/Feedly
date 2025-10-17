@@ -1,7 +1,3 @@
-/// Consolidated feed models to use as a single import when convenient.
-/// This file intentionally avoids redefining class names that already exist
-/// elsewhere to prevent import conflicts. Use these models going forward or
-/// keep using the existing per-file models. This is additive only.
 
 class CategoryModelUnified {
   final String id;

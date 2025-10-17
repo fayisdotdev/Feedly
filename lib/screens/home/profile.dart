@@ -1,3 +1,4 @@
+import 'package:feedly/widgets/styles/app_bar.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -6,7 +7,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: feedlyAppBar(title: "Profile"),
       body: Center(
         child: Text(
           'Profile Page Is in progress',

@@ -10,11 +10,7 @@ import 'package:chewie/chewie.dart';
 import 'package:path_provider/path_provider.dart';
 
 
-/// A combined provider that groups feed related responsibilities:
-/// - fetching home feeds & categories
-/// - uploading feeds (video + thumbnail)
-/// - fetching user's feeds (paginated)
-/// - simple video playback controller management
+
 class FeedProvider with ChangeNotifier {
   final String baseUrl = 'https://frijo.noviindus.in/api';
 
@@ -51,7 +47,6 @@ class FeedProvider with ChangeNotifier {
   // Local caching
   final String fileName = 'home_data.json';
 
-  // Token should be provided (or obtained via AuthProviderCompact)
   String? token;
 
   // ---------------- Home & Categories ----------------

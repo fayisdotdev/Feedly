@@ -3,9 +3,7 @@ import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-/// VideoPlayerWidget
-/// - `src` can be a network URL (http/https) or a local file path.
-/// - set `isLocal` to true when `src` is a local file path.
+
 class VideoPlayerWidget extends StatefulWidget {
   final String src;
   final bool isLocal;

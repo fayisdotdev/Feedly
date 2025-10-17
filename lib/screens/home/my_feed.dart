@@ -1,4 +1,5 @@
 import 'package:feedly/core/providers/auth_provider.dart';
+import 'package:feedly/widgets/styles/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:feedly/core/providers/feed_provider.dart';
@@ -67,7 +68,7 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Feeds')),
+      appBar: feedlyAppBar(title: "My feeds"),
       body: Consumer<FeedProvider>(
         builder: (context, provider, _) {
           if (provider.userFeeds.isEmpty && provider.isLoadingUserFeeds) {
