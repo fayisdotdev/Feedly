@@ -9,7 +9,7 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: Center(
         child: Text(
-          'Profile Page',
+          'Profile Page Is in progress',
           style: TextStyle(fontSize: 24),
         ),
       ),

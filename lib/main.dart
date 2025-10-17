@@ -8,7 +8,6 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        
         ChangeNotifierProvider(create: (_) => FeedProvider()),
         ChangeNotifierProvider(create: (_) => AuthProviderCompact()),
       ],

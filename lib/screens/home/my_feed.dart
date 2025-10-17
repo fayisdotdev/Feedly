@@ -1,11 +1,11 @@
 import 'package:feedly/core/providers/auth_provider.dart';
-import 'package:feedly/core/providers/feed_provider.dart';
-import 'package:feedly/models/feeds/feeds_models.dart' as unified;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+import 'package:feedly/core/providers/feed_provider.dart';
+import 'package:feedly/models/feeds/feeds_models.dart' as unified;
 import 'package:feedly/widgets/feed_card.dart';
 import 'package:feedly/widgets/video_player_widget.dart';
+import 'package:intl/intl.dart';
 
 class MyFeedScreen extends StatefulWidget {
   const MyFeedScreen({super.key});
@@ -22,18 +22,14 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProviderCompact>(
-        context,
-        listen: false,
-      );
+      final authProvider =
+          Provider.of<AuthProviderCompact>(context, listen: false);
       final feedProvider = Provider.of<FeedProvider>(context, listen: false);
 
       if (authProvider.accessToken != null &&
           authProvider.accessToken!.isNotEmpty) {
         feedProvider.token = authProvider.accessToken;
         feedProvider.fetchUserFeeds();
-      } else {
-        debugPrint('No access token available. Redirect to login.');
       }
 
       _scrollController.addListener(() {
@@ -87,8 +83,7 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
             child: ListView.builder(
               controller: _scrollController,
               itemCount:
-                  provider.userFeeds.length +
-                  (provider.userFeedsHasMore ? 1 : 0),
+                  provider.userFeeds.length + (provider.userFeedsHasMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == provider.userFeeds.length) {
                   return const Padding(
@@ -100,47 +95,32 @@ class _MyFeedScreenState extends State<MyFeedScreen> {
                 final unified.UserFeedModelUnified feed =
                     provider.userFeeds[index];
 
-                // Reuse FeedCard for a consistent look. If it's a user-owned post with video, show a small preview above the card.
+                // FeedCard now handles showing either image or video
                 return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (feed.video != null)
-                        SizedBox(
-                          height: 220,
-                          child: VideoPlayerWidget(
-                            src: feed.video!,
-                            isLocal: false,
-                            autoPlay: false,
-                          ),
-                        )
-                      else if (feed.image != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            feed.image!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      const SizedBox(height: 8),
-                      FeedCard(
-                        feed: unified.FeedModelUnified(
-                          id: feed.id.toString(),
-                          thumbnailUrl: feed.image ?? '',
-                          videoUrl: feed.video ?? '',
-                          description: feed.description,
-                          userName: 'You',
-                          userAvatar: 'assets/images/avatar_placeholder.png',
-                        ),
-                        onPlay: null,
-                        height: 140,
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: FeedCard(
+                    feed: unified.FeedModelUnified(
+                      id: feed.id.toString(),
+                      thumbnailUrl: feed.image ?? '',
+                      videoUrl: feed.video ?? '',
+                      description: feed.description,
+                      userName: 'You',
+                      userAvatar: 'assets/images/avatar_placeholder.png',
+                    ),
+                    height: feed.video != null ? 220 : 140,
+                    onPlay: feed.video != null
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => VideoPlayerWidget(
+                                  src: feed.video!,
+                                  autoPlay: true,
+                                ),
+                              ),
+                            );
+                          }
+                        : null,
                   ),
                 );
               },
